@@ -1,0 +1,6 @@
+ALTER TABLE "documents"
+ADD COLUMN "status" TEXT NOT NULL DEFAULT 'PENDING_VERIFICATION';
+
+ALTER TABLE "document_versions"
+ADD COLUMN "scan_status" TEXT NOT NULL DEFAULT 'CLEAN',
+ADD COLUMN "scan_detail" TEXT;

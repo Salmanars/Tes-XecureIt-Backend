@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DocumentRole {
+  OWNER
+  EDITOR
+  VIEWER
+
+  @@map("document_role")
+}
+
+enum Role {
+  OWNER
+  EDITOR
+  VIEWER
+
+  @@map("user_role")
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+
+  @@map("invitation_status")
+}
+
+model User {
+  id              String               @id @default(cuid())
+  email           String               @unique
+  name            String
+  passwordHash    String               @map("password_hash")
+  role            Role                 @default(VIEWER)
+  documents       Document[]           @relation("DocumentOwner")
+  shares          DocumentShare[]
+  versions        DocumentVersion[]
+  sentInvitations DocumentInvitation[] @relation("InvitationCreator")
+  auditEntries    AuditTrail[]         @relation("AuditActor")
+  createdAt       DateTime             @default(now()) @map("created_at")
+  updatedAt       DateTime             @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Document {
+  id          String               @id @default(cuid())
+  ownerId     String               @map("owner_id")
+  title       String
+  description String?
+  status      String               @default("PENDING_VERIFICATION")
+  statusNote  String?              @map("status_note")
+  filename    String
+  storagePath String               @map("storage_path")
+  mimeType    String               @map("mime_type")
+  size        Int
+  owner       User                 @relation("DocumentOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  shares      DocumentShare[]
+  versions    DocumentVersion[]
+  invitations DocumentInvitation[]
+  hashRecords HashRecord[]
+  createdAt   DateTime             @default(now()) @map("created_at")
+  updatedAt   DateTime             @updatedAt @map("updated_at")
+
+  @@index([ownerId])
+  @@index([createdAt])
+  @@map("documents")
+}
+
+model DocumentShare {
+  id         String       @id @default(cuid())
+  documentId String       @map("document_id")
+  userId     String       @map("user_id")
+  role       DocumentRole @default(VIEWER)
+  document   Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+
+  @@unique([documentId, userId])
+  @@index([userId])
+  @@map("document_shares")
+}
+
+model DocumentVersion {
+  id            String       @id @default(cuid())
+  documentId    String       @map("document_id")
+  createdById   String       @map("created_by_id")
+  versionNumber Int          @map("version_number")
+  storagePath   String       @map("storage_path")
+  hash          String
+  scanStatus    String       @default("CLEAN") @map("scan_status")
+  scanDetail    String?      @map("scan_detail")
+  changeNote    String?      @map("change_note")
+  document      Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  createdBy     User         @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  hashRecords   HashRecord[]
+  createdAt     DateTime     @default(now()) @map("created_at")
+
+  @@unique([documentId, versionNumber])
+  @@index([createdById])
+  @@map("document_versions")
+}
+
+model DocumentInvitation {
+  id          String           @id @default(cuid())
+  documentId  String           @map("document_id")
+  email       String
+  role        DocumentRole
+  invitedById String           @map("invited_by_id")
+  tokenHash   String           @unique @map("token_hash")
+  status      InvitationStatus @default(PENDING)
+  expiresAt   DateTime         @map("expires_at")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  document    Document         @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  invitedBy   User             @relation("InvitationCreator", fields: [invitedById], references: [id], onDelete: Restrict)
+
+  @@index([documentId, email, status])
+  @@index([email, status, expiresAt])
+  @@map("document_invitations")
+}
+
+model AuditTrail {
+  id         String   @id @default(cuid())
+  documentId String   @map("document_id")
+  actorId    String?  @map("actor_id")
+  action     String
+  details    Json?
+  ipAddress  String?  @map("ip_address")
+  actor      User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: Restrict)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([documentId, createdAt])
+  @@index([actorId, createdAt])
+  @@map("audit_trail")
+}
+
+model HashRecord {
+  id                String           @id @default(cuid())
+  documentId        String           @map("document_id")
+  documentVersionId String?          @map("document_version_id")
+  algorithm         String           @default("SHA-256")
+  hash              String
+  document          Document         @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  documentVersion   DocumentVersion? @relation(fields: [documentVersionId], references: [id], onDelete: SetNull)
+  createdAt         DateTime         @default(now()) @map("created_at")
+
+  @@index([documentId, createdAt])
+  @@index([documentVersionId])
+  @@map("hash_records")
+}
