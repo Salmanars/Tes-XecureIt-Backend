@@ -4,12 +4,15 @@ $readme = @'
 Backend service (`secure-doc-backend`) built with **Node.js**, **Express**, and **TypeScript** using **Prisma ORM** and **PostgreSQL** for secure document management, collaboration, file upload, and verification workflows.
 
 ## Tech Stack
-- **Runtime & Framework:** Node.js, Express (`^4.21.2`), TypeScript (`^5.7.2`), `tsx` (`^4.19.2`), `tsc`[cite: 6]
-- **Database & ORM:** PostgreSQL, Prisma (`@prisma/client` & `prisma` `^6.19.0`)[cite: 6]
-- **Auth & Security:** `jsonwebtoken`, `bcryptjs`, `helmet`, `cors`, `express-rate-limit`, `zod`[cite: 6]
-- **File Upload & Email:** `multer`, `nodemailer`[cite: 6]
-- **API Docs & Testing:** `swagger-ui-express`, Vitest (`vitest run`)[cite: 6]
-- **Container & Setup:** Docker (`Dockerfile`, `.dockerignore`), `setup-backend.cmd`, `create-backend-files.ps1`[cite: 6]
+- **Runtime & Framework:** Node.js, Express (`^4.21.2`), TypeScript (`^5.7.2`), `tsx` (`^4.19.2`), `tsc`
+- **Database & ORM:** PostgreSQL, Prisma (`@prisma/client` & `prisma` `^6.19.0`)
+- **Auth & Security:** `jsonwebtoken`, `bcryptjs`, `helmet`, `cors`, `express-rate-limit`, `zod`
+- **File Upload & Email:** `multer`, `nodemailer`
+- **API Docs & Testing:** `swagger-ui-express`, Vitest (`vitest run`)
+- **Container & Setup:** Docker (`Dockerfile`, `.dockerignore`), `setup-backend.cmd`, `create-backend-files.ps1`
+
+## Database Schema (ERD)
+![Entity Relationship Diagram](https://raw.githubusercontent.com/Salmanars/Tes-XecureIt-Frontend/main/public/ERD.webp)
 
 ## Project Structure
 ```text
@@ -24,7 +27,6 @@ Backend service (`secure-doc-backend`) built with **Node.js**, **Express**, and 
 ├── setup-backend.cmd       # Windows setup script
 └── tsconfig.json           # TypeScript compiler configuration
 ```
-[cite: 6]
 
 ## Environment Variables
 Copy `.env.example` to `.env` before running the backend:
